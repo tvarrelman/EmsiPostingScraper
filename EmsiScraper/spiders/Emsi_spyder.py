@@ -67,30 +67,17 @@ class EmsiSpider(scrapy.Spider):
 			description = desc_list[0]
 		todays_date = datetime.today().strftime('%Y-%m-%d')
 		file_date = datetime.today().strftime('%Y_%m_%d')
-		file_name = 'EmsiJobPosts' + file_date +'.json'
-		with open(file_name, "w") as json_file:
-			json_file.write('[')
-			json.dump({
+		file_name = 'EmsiJobPosts_' + file_date +'.json'
+		data = {
 				'Position Title': title,
 				'Position Location': location,
 				'Team': team,
 				'Category': category,
 				'Position Description': description,
-				'Retrieval Date': file_date
-				}, json_file)
-			json_file.write(']')
-
-		# 	data.append({
-		# 		'Position Title': title,
-		# 		'Position Location': location,
-		# 		'Team': team,
-		# 		'Category': category,
-		# 		'Posting Link': link['href']
-		# 		})
-		# # write data to the JSON file
-		# with open("EmsiJobs.json", "w") as json_file:
-		# 	json.dump({
-		# 		'JobPostings':data
-		# 		}, json_file)
+				'Retrieval Date': todays_date
+				}
+		with open(file_name, "a") as json_file:
+			json_file.write(json.dumps(data))
+			json_file.write('\n')
 
 
