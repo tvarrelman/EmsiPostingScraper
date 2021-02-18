@@ -20,42 +20,45 @@ class EmsiSpider(scrapy.Spider):
 		for url in urls:
 			yield scrapy.Request(url=url, callback=self.parse)
 
-	# parse parses the document accessed from the request
 	def parse(self, response):
-		# parse the page
 		soup = BeautifulSoup(response.text, features="lxml")
 		# find the full list of postings
-		posting_list = soup.find_all('div', attrs={'class':'posting'}) 
-		data = []
-		# iterate through the list of postings
+		posting_list = soup.find_all('div', attrs={'class':'posting'})
 		for posting in posting_list:
-			# find the posting title
-			title = posting.find('h5').text
-			# find the location of the job
-			location = posting.find('span', attrs={'class':'sort-by-location'}).text
-			# find the team and category for the position
-			team_cat = posting.find('span', attrs={'class':'sort-by-team'}).text
-			# separate the team and category
-			if ' – ' in team_cat:
-				team, category = team_cat.split(' – ', 1)
-			else:
-				team = team_cat
-				category = None
-				warning = "Posting, {0}: does not contain both team and category".format(title)
-				print(colored(warning, 'red'))
-			# find the link to each posting
+			# there is one link per job post
 			link = posting.find('a', href=True)
-			data.append({
-				'Position Title': title,
-				'Position Location': location,
-				'Team': team,
-				'Category': category,
-				'Posting Link': link['href']
-				})
-		# write data to the JSON file
-		with open("EmsiJobs.json", "w") as json_file:
-			json.dump({
-				'JobPostings':data
-				}, json_file)
+			yield scrapy.Request(link['href'], callback = self.parse_post)
+
+	# parse parses the document accessed from the request
+	def parse_post(self, response):
+		# parse the page
+		post_soup = BeautifulSoup(response.text, features="lxml") 
+		# find the posting title
+		post_headline = post_soup.find('div', attrs={'class':'posting-headline'})
+		title = post_headline.find('h2').text
+		location = post_headline.find('div', attrs={'sort-by-time'}).text
+		commitment = post_headline.find('div', attrs={'sort-by-commitment'}).text
+		team_cat = post_headline.find('div', attrs={'sort-by-team'}).text
+		if ' – ' in team_cat:
+			team, category = team_cat.split(' – ', 1)
+		else:
+			team = team_cat
+			category = None
+			warning = "Posting, {0}: does not contain both team and category".format(title)
+			print(colored(warning, 'red'))
+		print(colored([title, location, commitment, team, category],'yellow'))
+
+		# 	data.append({
+		# 		'Position Title': title,
+		# 		'Position Location': location,
+		# 		'Team': team,
+		# 		'Category': category,
+		# 		'Posting Link': link['href']
+		# 		})
+		# # write data to the JSON file
+		# with open("EmsiJobs.json", "w") as json_file:
+		# 	json.dump({
+		# 		'JobPostings':data
+		# 		}, json_file)
 
 
