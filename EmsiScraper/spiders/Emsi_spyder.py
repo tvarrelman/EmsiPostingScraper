@@ -2,7 +2,7 @@
 	Description: This spider scrapes Emsi's job board 
 	and saves the job postings to a JSON file. Saved fields
 	include a job title, location, team, category, description, 
-	and a link to the job posting.
+	company, id, and a link to the job posting.
 	Author: Tanner Varrelman
 """
 
@@ -21,6 +21,7 @@ class EmsiSpider(scrapy.Spider):
 		urls = ["https://jobs.lever.co/economicmodeling/"]
 		for url in urls:
 			yield scrapy.Request(url=url, callback=self.parse)
+
 	# this function finds the job postings and accesses the associated link
 	def parse(self, response):
 		soup = BeautifulSoup(response.text, features="lxml")
@@ -85,16 +86,16 @@ class EmsiSpider(scrapy.Spider):
 		file_name = 'EmsiJobPosts_' + file_date +'.json'
 		# data that we have retrieved
 		data = {
-				'Position Title': title,
-				'Position Location': location,
-				'Team': team,
-				'Category': category,
-				'Position Description': description,
-				'Retrieval Date': todays_date,
-				'Link': link,
-				'Company': company,
-				'id': pos_id
-				}
+			'Position Title': title,
+			'Position Location': location,
+			'Team': team,
+			'Category': category,
+			'Position Description': description,
+			'Retrieval Date': todays_date,
+			'Link': link,
+			'Company': company,
+			'id': pos_id
+			}
 		# write the data to a json file
 		with open(file_name, "a") as json_file:
 			json_file.write(json.dumps(data))
